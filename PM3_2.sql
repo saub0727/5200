@@ -1,32 +1,32 @@
 USE CarGenieDB;
--- 从临时表导入数据到正式表
--- 1. States表
+-- Import data from temporary table to formal tables
+-- 1. States table
 INSERT IGNORE INTO States (StateName)
 SELECT DISTINCT state 
 FROM temp_vehicles 
 WHERE state IS NOT NULL;
 
--- 2. Regions表
+-- 2. Regions table
 INSERT IGNORE INTO Regions (RegionName, StateId)
 SELECT DISTINCT tv.region, s.StateId
 FROM temp_vehicles tv
 JOIN States s ON tv.state = s.StateName
 WHERE tv.region IS NOT NULL;
 
--- 3. Manufacturers表
+-- 3. Manufacturers table
 INSERT IGNORE INTO Manufacturers (ManufacturerName)
 SELECT DISTINCT manufacturer 
 FROM temp_vehicles 
 WHERE manufacturer IS NOT NULL;
 
--- 4. Models表
+-- 4. Models table
 INSERT IGNORE INTO Models (ModelName, ManufacturerId)
 SELECT DISTINCT tv.model, m.ManufacturerId
 FROM temp_vehicles tv
 JOIN Manufacturers m ON tv.manufacturer = m.ManufacturerName
 WHERE tv.model IS NOT NULL;
 
--- 5. Vehicles表
+-- 5. Vehicles table
 INSERT IGNORE INTO Vehicles (VehicleId, Vin, Price, PostingDate, Description, ModelId)
 SELECT 
     tv.id,
@@ -40,7 +40,7 @@ LEFT JOIN Models m ON tv.model = m.ModelName
 LEFT JOIN Manufacturers mf ON tv.manufacturer = mf.ManufacturerName
 WHERE m.ManufacturerId = mf.ManufacturerId;
 
--- 6. VehicleSpecs表
+-- 6. VehicleSpecs table
 INSERT IGNORE INTO VehicleSpecs (VehicleId, Cylinders, Fuel, Transmission, Drive)
 SELECT 
     id,
@@ -66,7 +66,7 @@ SELECT
 FROM temp_vehicles
 WHERE id IN (SELECT VehicleId FROM Vehicles);
 
--- 7. VehicleConditions表
+-- 7. VehicleConditions table
 INSERT IGNORE INTO VehicleConditions (VehicleId, Odometer, VehicleCondition, TitleStatus)
 SELECT 
     id,
@@ -92,7 +92,7 @@ SELECT
 FROM temp_vehicles
 WHERE id IN (SELECT VehicleId FROM Vehicles);
 
--- 8. VehicleClassification表
+-- 8. VehicleClassification table
 INSERT IGNORE INTO VehicleClassification (VehicleId, Year, Size, Type, Color)
 SELECT 
     id,
@@ -137,14 +137,14 @@ SELECT
 FROM temp_vehicles
 WHERE id IN (SELECT VehicleId FROM Vehicles);
 
--- 9. Images表
+-- 9. Images table
 INSERT IGNORE INTO Images (VehicleId, ImageURL)
 SELECT id, image_url
 FROM temp_vehicles
 WHERE image_url IS NOT NULL
 AND id IN (SELECT VehicleId FROM Vehicles);
 
--- 10. Locations表
+-- 10. Locations table
 INSERT IGNORE INTO Locations (VehicleId, Latitude, Longitude, RegionId)
 SELECT 
     tv.id,

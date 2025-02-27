@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS Models;
 DROP TABLE IF EXISTS Manufacturers;
 DROP TABLE IF EXISTS Regions;
 DROP TABLE IF EXISTS States;
+DROP TABLE IF EXISTS temp_vehicles;
 
 CREATE TABLE States (
                         StateId INT AUTO_INCREMENT,
