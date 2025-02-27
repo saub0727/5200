@@ -11,9 +11,9 @@ def main():
     # Create database connection
     print("Connecting to database...")
     # if you set the password, use this: 
-    # connection_str = 'mysql+mysqlconnector://root:password@localhost:3306/CarGenieDB'
+    connection_str = 'mysql+mysqlconnector://root:password@localhost:3306/CarGenieDB'
     # change the password to your own password
-    connection_str = 'mysql+mysqlconnector://root@localhost:3306/CarGenieDB'
+    # connection_str = 'mysql+mysqlconnector://root@localhost:3306/CarGenieDB'
     engine = create_engine(connection_str)
 
     try:

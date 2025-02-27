@@ -45,18 +45,18 @@ Team Members:
 
     /*
     Color,ColorCount
-    WHITE,22790
-    BLACK,18927
-    SILVER,13731
-    BLUE,9283
-    RED,8284
-    GREY,7689
-    CUSTOM,1992
-    GREEN,1837
-    BROWN,1668
-    ORANGE,541
-    YELLOW,541
-    PURPLE,192
+    WHITE,21884
+    BLACK,18446
+    SILVER,13430
+    BLUE,9026
+    RED,8005
+    GREY,7463
+    CUSTOM,1894
+    GREEN,1749
+    BROWN,1630
+    ORANGE,502
+    YELLOW,446
+    PURPLE,181
     */
     ```
 
@@ -83,12 +83,12 @@ Team Members:
 
     /*
     VehicleCondition,VehicleCount,Percentage
-    EXCELLENT,32063,52.48
-    GOOD,23921,39.15
-    LIKE_NEW,3952,6.47
-    FAIR,767,1.26
-    NEW,331,0.54
-    SALVAGE,60,0.10
+    EXCELLENT,31163,52.61
+    GOOD,23231,39.22
+    LIKE_NEW,3786,6.39
+    FAIR,687,1.16
+    NEW,309,0.52
+    SALVAGE,56,0.09
     */
     ```
 
@@ -106,17 +106,16 @@ Team Members:
         Fuel IS NOT NULL
     GROUP BY Fuel
     ORDER BY VehicleCount DESC;
-
+    
     /*
-    Fuel,VehicleCount
-    GAS,100656
-    OTHER,7867
-    DIESEL,6001
-    HYBRID,1571
-    ELECTRIC,525
+    GAS,98030
+    OTHER,9046
+    DIESEL,5347
+    HYBRID,1544
+    ELECTRIC,505
     */
     ```
-
+    
 4. How many vehicles were listed in a specific year and month? This helps analyze seasonal trends and listing activity over time.
 
     ```sql
@@ -134,7 +133,7 @@ Team Members:
 
     /*
     PostYear,PostMonth,ListingCount
-    2021,4,88723
+    2021,4,74783
     */
     ```
 
@@ -150,21 +149,22 @@ Team Members:
         Type IS NOT NULL
     GROUP BY Type
     ORDER BY TypeCount DESC;
-
+    
     /*
     Type,TypeCount
-    SEDAN,28746
-    PICKUP,10477
-    TRUCK,9318
-    OTHER,6268
-    HATCHBACK,4861
-    COUPE,4544
-    WAGON,3825
-    VAN,2615
-    CONVERTIBLE,1958
-    MINI-VAN,1534
-    BUS,106
-    OFFROAD,77
+    SEDAN,28146
+    SUV,27082
+    OTHER,21599
+    PICKUP,10067
+    TRUCK,8842
+    HATCHBACK,4707
+    COUPE,4282
+    WAGON,3754
+    VAN,2536
+    CONVERTIBLE,1828
+    MINI-VAN,1505
+    OFFROAD,70
+    BUS,54
     */
     ```
 
@@ -188,16 +188,16 @@ Team Members:
 
     /*
     ManufacturerName,VehicleCount,AvgPrice
-    ferrari,30,151520
-    aston-martin,11,72652
-    tesla,165,41878
-    porsche,472,39817
-    rover,645,29934
-    ram,4536,29906
-    chevrolet,13732,29513
-    alfa-romeo,161,28915
-    gmc,4636,25133
-    mercedes-benz,3384,22447
+    ferrari,30,120983
+    aston-martin,11,52743
+    tesla,194,39502
+    porsche,471,36817
+    rover,634,28205
+    ram,4401,26800
+    alfa-romeo,160,26165
+    chevrolet,14009,26158
+    gmc,4339,22714
+    jaguar,345,20386
     */
     ```
 
@@ -221,53 +221,56 @@ Team Members:
 
     /*
     StateName,VehicleCount
-    ca,16208
-    fl,7129
-    or,7006
-    tx,6101
-    wa,5432
-    ny,4283
-    co,4181
-    oh,4108
-    ia,3599
-    nj,3566
+    ca,15456
+    or,6890
+    fl,6740
+    tx,5768
+    wa,5194
+    ny,4329
+    co,4087
+    oh,4001
+    nc,3435
+    id,3416
     */    
     ```
 
 8. Which vehicle models are the most popular in a specific state (e.g., Washington)? This helps analyze local market trends and buyer preferences.
 
     ```sql
-    -- Retrieve the top 10 most available vehicle models in Washington State
+    -- Retrieve the top 10 most available vehicle models along with their manufacturers in Washington State
     SELECT 
-        ModelName, VehicleCnt
+        Manufacturers.ManufacturerName, 
+        Models.ModelName, 
+        T.VehicleCnt
     FROM
         (SELECT 
-            ModelId, COUNT(*) AS VehicleCnt
-        FROM
-            Vehicles
+            Vehicles.ModelId, 
+            COUNT(*) AS VehicleCnt
+        FROM Vehicles
         JOIN Locations ON Locations.VehicleId = Vehicles.VehicleId
         JOIN Regions ON Locations.RegionId = Regions.RegionId
         JOIN States ON Regions.StateId = States.StateId
-        WHERE
-            ModelId IS NOT NULL AND StateName = 'wa'
-        GROUP BY ModelId
+        WHERE 
+            Vehicles.ModelId IS NOT NULL 
+            AND States.StateName = 'wa'
+        GROUP BY Vehicles.ModelId
         ORDER BY VehicleCnt DESC
         LIMIT 10) AS T
-            JOIN
-        Models ON Models.ModelId = T.ModelId;
+    JOIN Models ON Models.ModelId = T.ModelId
+    JOIN Manufacturers ON Manufacturers.ManufacturerId = Models.ManufacturerId;
         
     /*
-    ModelName,VehicleCnt
-    1500,102
-    f-150,99
-    "silverado 1500",57
-    tacoma,46
-    "wrangler unlimited",43
-    outback,41
-    2500,38
-    wrangler,35
-    "grand cherokee",34
-    "wrangler unlimited sahara",32
+    ManufacturerName,ModelName,VehicleCnt
+    ford,f-150,86
+    ram,1500,79
+    chevrolet,silverado 1500,53
+    subaru,outback,41
+    toyota,tacoma,37
+    jeep,wrangler unlimited,31
+    mitsubishi,outlander sport,30
+    jeep,wrangler unlimited sahara,30
+    jeep,wrangler,29
+    ford,super duty f-350 srw,27
     */
     ```
 
@@ -277,19 +280,20 @@ Team Members:
     -- Retrieve the top 10 RAV4s in Washington State with the highest price-to-mileage ratio  
     SELECT 
         FilteredVehicles.VehicleId,
+        Manufacturers.ManufacturerName,
         FilteredVehicles.ModelName,
         FilteredVehicles.Price,
         FilteredVehicles.Odometer AS Mileage,
-        ROUND(FilteredVehicles.Price / NULLIF(FilteredVehicles.Odometer, 0),
-                2) AS PriceToQualityRatio
+        ROUND(FilteredVehicles.Price / NULLIF(FilteredVehicles.Odometer, 0), 2) AS PriceToQualityRatio
     FROM
         (SELECT 
             Vehicles.VehicleId,
-                Models.ModelName,
-                Vehicles.Price,
-                VehicleConditions.Odometer
-        FROM
-            Vehicles
+            Vehicles.ModelId,
+            Models.ManufacturerId,
+            Models.ModelName,
+            Vehicles.Price,
+            VehicleConditions.Odometer
+        FROM Vehicles
         JOIN Models ON Vehicles.ModelId = Models.ModelId
         JOIN VehicleConditions ON Vehicles.VehicleId = VehicleConditions.VehicleId
         JOIN Locations ON Vehicles.VehicleId = Locations.VehicleId
@@ -297,24 +301,26 @@ Team Members:
         JOIN States ON Regions.StateId = States.StateId
         WHERE
             Models.ModelName LIKE '%rav4%'
-                AND States.StateName = 'wa'
-                AND Vehicles.Price IS NOT NULL
-                AND VehicleConditions.Odometer IS NOT NULL) AS FilteredVehicles
+            AND States.StateName = 'wa'
+            AND Vehicles.Price IS NOT NULL
+            AND VehicleConditions.Odometer IS NOT NULL
+        ) AS FilteredVehicles
+    JOIN Manufacturers ON Manufacturers.ManufacturerId = FilteredVehicles.ManufacturerId
     ORDER BY PriceToQualityRatio DESC
     LIMIT 10;
-
+    
     /*
-    VehicleId,ModelName,Price,Mileage,PriceToQualityRatio
-    7316250174,"rav4 xle",27500,3920,7.02
-    7310929118,rav4,33499,6477,5.17
-    7306465180,"electric rav4 prime xse awd",49995,12500,4.00
-    7317089710,"rav4 le awd 10k miles camera lane departure crash avoid 34 mpg",31995,10978,2.91
-    7307760850,"rav4 hybrid",32999,14325,2.30
-    7316877905,"a RAV4",26786,20053,1.34
-    7306365638,rav4,27988,21361,1.31
-    7304432284,"rav4 adventure awd gas",32489,25143,1.29
-    7316223193,"rav4 le",25000,19498,1.28
-    7305007657,"rav4 adventure awd gas",32436,26632,1.22
+    VehicleId,ManufacturerName,ModelName,Price,Mileage,PriceToQualityRatio
+    7316250174,toyota,rav4 xle,27500,3920,7.02
+    7310929118,toyota,rav4,33499,6477,5.17
+    7307947980,toyota,electric rav4 prime xse awd,49995,12500,4.00
+    7314361239,toyota,rav4 xle fwd gas suv auto,30999,9111,3.40
+    7317089710,toyota,rav4 le awd 10k miles camera lane departure crash avoid 34 mpg,31995,10978,2.91
+    7307760890,toyota,rav4 hybrid,32999,14325,2.30
+    7316568002,toyota,rav4,27988,21361,1.31
+    7304985323,toyota,rav4 adventure awd gas,32489,25143,1.29
+    7316223193,toyota,rav4 le,25000,19498,1.28
+    7305007657,toyota,rav4 adventure awd gas,32436,26632,1.22
     */
     ```
 
@@ -336,19 +342,19 @@ Team Members:
     GROUP BY VehicleAge
     ORDER BY VehicleAge ASC
     LIMIT 10; -- for ease of display
-
+    
     /*
     VehicleAge,VehicleCount,AvgPrice
-    3,28,16478
-    4,746,33455
-    5,4402,36716
-    6,6215,32250
-    7,9519,27604
-    8,9162,25241
-    9,7697,21911
-    10,8320,35212
-    11,8126,18369
-    12,8360,15093
+    3,38,12141
+    4,912,26211
+    5,5164,31440
+    6,7401,26962
+    7,11237,23286
+    8,10690,21314
+    9,8693,19122
+    10,9311,31028
+    11,8938,16259
+    12,9046,13642
     */
     ```
 
