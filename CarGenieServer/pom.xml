@@ -7,6 +7,7 @@
     <groupId>car.genie.server</groupId>
     <artifactId>CarGenieServer</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>  <!-- 关键：声明为 Web 应用 -->
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -60,5 +61,4 @@
             <version>2.10.1</version>
         </dependency>
     </dependencies>
-
 </project>
