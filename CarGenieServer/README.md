@@ -17,17 +17,7 @@
 2.  点击 `+` 按钮，选择 `Tomcat Server > Local`
 3.  如果未安装 Tomcat，IDE 可能会提示选择 Tomcat 安装路径
 
-### 步骤 2：添加 Web 部署（Artifact）
-
-目前假设前端存放在另一个 repo，这里仅配置后端部署，确保 `war exploded` 形式的 `Artifact` 存在。
-
-1.  打开 `File > Project Structure (Ctrl + Alt + Shift + S)`
-2.  导航到 `Artifacts` 选项卡
-3.  点击 `+` 按钮，选择 `Web Application: Exploded`
-4.  选择 `CarGenieServer` 作为 `Module`
-5.  点击 `Apply` 和 `OK`
-
-### 步骤 3：在 Tomcat 配置中添加 Web 部署
+### 步骤 2：在 Tomcat 配置中添加 Web 部署
 
 1.  返回 `Run > Edit Configurations`
 2.  选择 `Tomcat Server > Local`
@@ -35,6 +25,16 @@
 4.  点击 `+`，选择 `Artifact`
 5.  选择 `CarGenieServer:war exploded`
 6.  将 `Application Context` 设为 `/`（即 `http://localhost:8080/`）
+
+### 步骤 3：添加 Web 部署（Artifact）（应该可以跳过）
+
+**应该可以直接跳过**，步骤2窗口下方会出现 `Artifact不存在` 的警告，点一下`Fix`就会自动创建。目前假设前端存放在另一个 repo，这里仅配置后端部署，确保 `war exploded` 形式的 `Artifact` 存在。
+
+1.  打开 `File > Project Structure (Ctrl + Alt + Shift + S)`
+2.  导航到 `Artifacts` 选项卡
+3.  点击 `+` 按钮，选择 `Web Application: Exploded`
+4.  选择 `CarGenieServer` 作为 `Module`
+5.  点击 `Apply` 和 `OK`
 
 ### 步骤 4：配置 Tomcat 端口（建议跳过，用默认值就行）
 
