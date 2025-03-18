@@ -37,8 +37,8 @@ public class ModelsDao {
              PreparedStatement insertStmt = connection.prepareStatement(insertModel, RETURN_GENERATED_KEYS)) {
 
             insertStmt.setString(1, model.getModelName());
-            if (model.getManufacturer() != null) {
-                insertStmt.setInt(2, model.getManufacturer().getManufacturerId());
+            if (model.getManufacturerId() != null) {
+                insertStmt.setInt(2, model.getManufacturerId());
             } else {
                 insertStmt.setNull(2, java.sql.Types.INTEGER);
             }
@@ -64,10 +64,8 @@ public class ModelsDao {
      * Get a model by its ModelId, including its manufacturer information.
      */
     public Models getModelByModelId(int modelId) throws SQLException {
-        String selectModel = "SELECT m.ModelId, m.ModelName, m.ManufacturerId, " +
-                "mf.ManufacturerName " +
+        String selectModel = "SELECT m.ModelId, m.ModelName, m.ManufacturerId " +
                 "FROM Models m " +
-                "LEFT JOIN Manufacturers mf ON m.ManufacturerId = mf.ManufacturerId " +
                 "WHERE m.ModelId=?;";
 
         try (Connection connection = connectionManager.getConnection();
@@ -78,9 +76,11 @@ public class ModelsDao {
                 if (results.next()) {
                     String modelName = results.getString("ModelName");
                     int manufacturerId = results.getInt("ManufacturerId");
-                    String manufacturerName = results.getString("ManufacturerName");
-                    Manufacturers manufacturer = new Manufacturers(manufacturerId, manufacturerName);
-                    return new Models(modelId, modelName, manufacturer);
+                    return Models.builder()
+                            .modelId(modelId)
+                            .modelName(modelName)
+                            .manufacturerId(manufacturerId)
+                            .build();
                 }
             }
         } catch (SQLException e) {
@@ -93,7 +93,7 @@ public class ModelsDao {
     /**
      * Get all models for a specific manufacturer.
      */
-    public List<Models> getModelsByManufacturer(Manufacturers manufacturer) throws SQLException {
+    public List<Models> getModelsByManufacturerId(int manufacturerId) throws SQLException {
         List<Models> models = new ArrayList<>();
         String selectModels = "SELECT ModelId, ModelName " +
                 "FROM Models " +
@@ -102,13 +102,17 @@ public class ModelsDao {
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement selectStmt = connection.prepareStatement(selectModels)) {
 
-            selectStmt.setInt(1, manufacturer.getManufacturerId());
+            selectStmt.setInt(1, manufacturerId);
             try (ResultSet results = selectStmt.executeQuery()) {
                 while (results.next()) {
                     int modelId = results.getInt("ModelId");
                     String modelName = results.getString("ModelName");
 
-                    Models model = new Models(modelId, modelName, manufacturer);
+                    Models model = Models.builder()
+                            .modelId(modelId)
+                            .modelName(modelName)
+                            .manufacturerId(manufacturerId)
+                            .build();
                     models.add(model);
                 }
             }
@@ -129,8 +133,8 @@ public class ModelsDao {
              PreparedStatement updateStmt = connection.prepareStatement(updateModel)) {
 
             updateStmt.setString(1, model.getModelName());
-            if (model.getManufacturer() != null) {
-                updateStmt.setInt(2, model.getManufacturer().getManufacturerId());
+            if (model.getManufacturerId() != null) {
+                updateStmt.setInt(2, model.getManufacturerId());
             } else {
                 updateStmt.setNull(2, java.sql.Types.INTEGER);
             }

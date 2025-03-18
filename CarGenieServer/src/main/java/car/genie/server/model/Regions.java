@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@Builder
 @Data
+@Builder
 @NoArgsConstructor
-public class Models {
-    private Integer modelId; // AUTO_INCREMENT
-    private String modelName;
-    private Integer manufacturerId;
+@AllArgsConstructor
+public class Regions {
+    private int regionId;
+    private String regionName;
+    private int stateId;
 }
