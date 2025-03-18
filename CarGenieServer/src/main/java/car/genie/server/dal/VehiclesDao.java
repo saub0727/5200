@@ -42,8 +42,8 @@ public class VehiclesDao {
             insertStmt.setInt(3, vehicle.getPrice());
             insertStmt.setDate(4, Date.valueOf(vehicle.getPostingDate()));
             insertStmt.setString(5, vehicle.getDescription());
-            if (vehicle.getModel() != null) {
-                insertStmt.setInt(6, vehicle.getModel().getModelId());
+            if (vehicle.getModelId() != null) {
+                insertStmt.setInt(6, vehicle.getModelId());
             } else {
                 insertStmt.setNull(6, java.sql.Types.INTEGER);
             }
@@ -104,21 +104,21 @@ public class VehiclesDao {
     }
 
     /**
-     * Get all vehicles for a specific model.
+     * Get all vehicles for a specific model ID.
      */
-    public List<Vehicles> getVehiclesByModel(Models model) throws SQLException {
+    public List<Vehicles> getVehiclesByModelId(int modelId) throws SQLException {
         List<Vehicles> vehicles = new ArrayList<>();
-        String selectVehicles = "SELECT v.VehicleId, v.Vin, v.Price, v.PostingDate, v.Description " +
+        String selectVehicles = "SELECT v.VehicleId, v.Vin, v.Price, v.PostingDate, v.Description, v.ModelId " +
                 "FROM Vehicles v " +
                 "WHERE v.ModelId=?;";
 
         try (Connection connection = connectionManager.getConnection();
                 PreparedStatement selectStmt = connection.prepareStatement(selectVehicles)) {
 
-            selectStmt.setInt(1, model.getModelId());
+            selectStmt.setInt(1, modelId);
             try (ResultSet results = selectStmt.executeQuery()) {
                 while (results.next()) {
-                    Vehicles vehicle = parseVehicleWithKnownModel(results, model);
+                    Vehicles vehicle = parseVehicle(results);
                     vehicles.add(vehicle);
                 }
             }
@@ -143,8 +143,8 @@ public class VehiclesDao {
             updateStmt.setInt(2, vehicle.getPrice());
             updateStmt.setDate(3, Date.valueOf(vehicle.getPostingDate()));
             updateStmt.setString(4, vehicle.getDescription());
-            if (vehicle.getModel() != null) {
-                updateStmt.setInt(5, vehicle.getModel().getModelId());
+            if (vehicle.getModelId() != null) {
+                updateStmt.setInt(5, vehicle.getModelId());
             } else {
                 updateStmt.setNull(5, java.sql.Types.INTEGER);
             }
@@ -195,21 +195,21 @@ public class VehiclesDao {
                 .price(results.getInt("Price"))
                 .postingDate(results.getDate("PostingDate").toLocalDate())
                 .description(results.getString("Description"))
-                .model(ModelsDao.getInstance().getModelByModelId(results.getInt("ModelId")))
+                .modelId(results.getInt("ModelId"))
                 .build();
     }
 
     /**
-     * Helper method to parse a vehicle when we already have the model object
+     * Helper method to parse a vehicle when we already have the model ID
      */
-    private Vehicles parseVehicleWithKnownModel(ResultSet results, Models model) throws SQLException {
+    private Vehicles parseVehicleWithKnownModelId(ResultSet results, int modelId) throws SQLException {
         return Vehicles.builder()
                 .vehicleId(results.getLong("VehicleId"))
                 .vin(results.getString("Vin"))
                 .price(results.getInt("Price"))
                 .postingDate(results.getDate("PostingDate").toLocalDate())
                 .description(results.getString("Description"))
-                .model(model)
+                .modelId(modelId)
                 .build();
     }
 }

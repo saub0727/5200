@@ -38,7 +38,7 @@ public class VehiclesDaoTest {
         // Create test model
         testModel = Models.builder()
                 .modelName("TestModel")
-                .manufacturer(testManufacturer)
+                .manufacturerId(testManufacturer.getManufacturerId())
                 .build();
         testModel = modelsDao.create(testModel);
         assertNotNull(testModel.getModelId(), "Model ID should not be null");
@@ -50,7 +50,7 @@ public class VehiclesDaoTest {
                 .price(30000)
                 .postingDate(LocalDate.now())
                 .description("Test Vehicle")
-                .model(testModel)
+                .modelId(testModel.getModelId())
                 .build();
         testVehicle = vehiclesDao.create(testVehicle);
         assertNotNull(testVehicle.getVehicleId(), "Vehicle ID should not be null");
@@ -86,7 +86,7 @@ public class VehiclesDaoTest {
                 .price(25000)
                 .postingDate(LocalDate.now())
                 .description("New Test Vehicle")
-                .model(testModel)
+                .modelId(testModel.getModelId())
                 .build();
         Vehicles created = vehiclesDao.create(newVehicle);
 
@@ -95,7 +95,7 @@ public class VehiclesDaoTest {
             assertEquals(2L, created.getVehicleId());
             assertEquals("TEST987654321", created.getVin());
             assertEquals(25000, created.getPrice());
-            assertEquals(testModel.getModelId(), created.getModel().getModelId());
+            assertEquals(testModel.getModelId(), created.getModelId());
         } finally {
             if (created != null && created.getVehicleId() != null) {
                 vehiclesDao.delete(created);
@@ -110,7 +110,7 @@ public class VehiclesDaoTest {
         assertEquals(testVehicle.getVehicleId(), found.getVehicleId());
         assertEquals(testVehicle.getVin(), found.getVin());
         assertEquals(testVehicle.getPrice(), found.getPrice());
-        assertEquals(testModel.getModelId(), found.getModel().getModelId());
+        assertEquals(testModel.getModelId(), found.getModelId());
     }
 
     @Test
@@ -120,12 +120,12 @@ public class VehiclesDaoTest {
         assertEquals(testVehicle.getVehicleId(), found.getVehicleId());
         assertEquals(testVehicle.getVin(), found.getVin());
         assertEquals(testVehicle.getPrice(), found.getPrice());
-        assertEquals(testModel.getModelId(), found.getModel().getModelId());
+        assertEquals(testModel.getModelId(), found.getModelId());
     }
 
     @Test
-    public void testGetVehiclesByModel() throws SQLException {
-        List<Vehicles> vehicles = vehiclesDao.getVehiclesByModel(testModel);
+    public void testGetVehiclesByModelId() throws SQLException {
+        List<Vehicles> vehicles = vehiclesDao.getVehiclesByModelId(testModel.getModelId());
         assertNotNull(vehicles, "Vehicles list should not be null");
         assertFalse(vehicles.isEmpty(), "Vehicles list should not be empty");
 
@@ -149,7 +149,7 @@ public class VehiclesDaoTest {
         assertEquals(testVehicle.getVehicleId(), updated.getVehicleId());
         assertEquals(35000, updated.getPrice());
         assertEquals("Updated Test Vehicle", updated.getDescription());
-        assertEquals(testModel.getModelId(), updated.getModel().getModelId());
+        assertEquals(testModel.getModelId(), updated.getModelId());
 
         // Verify in database
         Vehicles fromDb = vehiclesDao.getVehicleById(testVehicle.getVehicleId());
@@ -166,7 +166,7 @@ public class VehiclesDaoTest {
                 .price(20000)
                 .postingDate(LocalDate.now())
                 .description("To Delete Vehicle")
-                .model(testModel)
+                .modelId(testModel.getModelId())
                 .build();
         toDelete = vehiclesDao.create(toDelete);
         assertNotNull(toDelete.getVehicleId(), "Created vehicle should have an ID");

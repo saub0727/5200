@@ -33,7 +33,7 @@ public class ModelsDaoTest {
         // Create test model
         testModel = Models.builder()
                 .modelName("TestModel")
-                .manufacturer(testManufacturer)
+                .manufacturerId(testManufacturer.getManufacturerId())
                 .build();
         testModel = modelsDao.create(testModel);
         assertNotNull(testModel.getModelId(), "Model ID should not be null");
@@ -59,7 +59,7 @@ public class ModelsDaoTest {
     public void testCreate() throws SQLException {
         Models newModel = Models.builder()
                 .modelName("NewTestModel")
-                .manufacturer(testManufacturer)
+                .manufacturerId(testManufacturer.getManufacturerId())
                 .build();
         Models created = modelsDao.create(newModel);
 
@@ -67,7 +67,7 @@ public class ModelsDaoTest {
             assertNotNull(created, "Created model should not be null");
             assertNotNull(created.getModelId(), "Created model ID should not be null");
             assertEquals("NewTestModel", created.getModelName());
-            assertEquals(testManufacturer.getManufacturerId(), created.getManufacturer().getManufacturerId());
+            assertEquals(testManufacturer.getManufacturerId(), created.getManufacturerId());
         } finally {
             if (created != null && created.getModelId() != null) {
                 modelsDao.delete(created);
@@ -81,12 +81,12 @@ public class ModelsDaoTest {
         assertNotNull(found, "Should find model by ID");
         assertEquals(testModel.getModelId(), found.getModelId());
         assertEquals(testModel.getModelName(), found.getModelName());
-        assertEquals(testManufacturer.getManufacturerId(), found.getManufacturer().getManufacturerId());
+        assertEquals(testManufacturer.getManufacturerId(), found.getManufacturerId());
     }
 
     @Test
-    public void testGetModelsByManufacturer() throws SQLException {
-        List<Models> models = modelsDao.getModelsByManufacturer(testManufacturer);
+    public void testGetModelsByManufacturerId() throws SQLException {
+        List<Models> models = modelsDao.getModelsByManufacturerId(testManufacturer.getManufacturerId());
         assertNotNull(models, "Models list should not be null");
         assertFalse(models.isEmpty(), "Models list should not be empty");
 
@@ -108,7 +108,7 @@ public class ModelsDaoTest {
         assertNotNull(updated, "Updated model should not be null");
         assertEquals(testModel.getModelId(), updated.getModelId());
         assertEquals("UpdatedTestModel", updated.getModelName());
-        assertEquals(testManufacturer.getManufacturerId(), updated.getManufacturer().getManufacturerId());
+        assertEquals(testManufacturer.getManufacturerId(), updated.getManufacturerId());
 
         // Verify in database
         Models fromDb = modelsDao.getModelByModelId(testModel.getModelId());
@@ -120,7 +120,7 @@ public class ModelsDaoTest {
     public void testDelete() throws SQLException {
         Models toDelete = Models.builder()
                 .modelName("ToDeleteModel")
-                .manufacturer(testManufacturer)
+                .manufacturerId(testManufacturer.getManufacturerId())
                 .build();
         toDelete = modelsDao.create(toDelete);
         assertNotNull(toDelete.getModelId(), "Created model should have an ID");
