@@ -22,6 +22,12 @@ const HomePage = () => {
                 >
                     Filter Vehicles
                 </button>
+                <button
+                    className="px-6 py-3 bg-purple-500 text-white rounded hover:bg-purple-700 transition"
+                    onClick={() => navigate("/managevehicles")}
+                >
+                    Manage Vehicles
+                </button>
             </div>
         </div>
     );
