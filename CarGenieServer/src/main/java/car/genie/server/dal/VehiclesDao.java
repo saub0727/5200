@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.Date;
@@ -34,8 +35,16 @@ public class VehiclesDao {
         String insertVehicle = "INSERT INTO Vehicles(VehicleId, Vin, Price, PostingDate, Description, ModelId) " +
                 "VALUES(?,?,?,?,?,?);";
 
+        System.out.println("Executing query: " + insertVehicle);
+        System.out.println("VehicleId: " + vehicle.getVehicleId());
+        System.out.println("VIN: " + vehicle.getVin());
+        System.out.println("Price: " + vehicle.getPrice());
+        System.out.println("PostingDate: " + vehicle.getPostingDate());
+        System.out.println("Description: " + vehicle.getDescription());
+        System.out.println("ModelId: " + vehicle.getModelId());
+
         try (Connection connection = connectionManager.getConnection();
-                PreparedStatement insertStmt = connection.prepareStatement(insertVehicle)) {
+             PreparedStatement insertStmt = connection.prepareStatement(insertVehicle)) {
 
             insertStmt.setLong(1, vehicle.getVehicleId());
             insertStmt.setString(2, vehicle.getVin());
@@ -48,14 +57,22 @@ public class VehiclesDao {
                 insertStmt.setNull(6, java.sql.Types.INTEGER);
             }
 
-            insertStmt.executeUpdate();
+            int rowsAffected = insertStmt.executeUpdate();
+            if (rowsAffected == 0) {
+                throw new SQLException("Insert failed, no rows affected.");
+            }
+
+            System.out.println("Vehicle created successfully!");
             return vehicle;
 
         } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
             e.printStackTrace();
             throw e;
         }
     }
+
+
 
     /**
      * Get a vehicle by its ID, including its model information.
@@ -212,4 +229,5 @@ public class VehiclesDao {
                 .modelId(modelId)
                 .build();
     }
+
 }

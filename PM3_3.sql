@@ -1,4 +1,6 @@
 -- Count the number of vehicles listed for sale, grouped by color
+USE CarGenieDB;
+
 SELECT Color,
        COUNT(*) AS ColorCount
 FROM VehicleClassification
