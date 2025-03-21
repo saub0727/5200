@@ -48,5 +48,26 @@
 1.  `Build` → `Rebuild project`
 2.  `Build` → `Build Artifacts` → `Rebuild`
 3.  点击 **Run** 启动 Tomcat
-4.  浏览器会自动打开 / 也可以手动在浏览器访问 `http://localhost:8080/` 或 `http://localhost:8080/CarGenieServer_war_exploded/`
+4.  浏览器会自动打开 / 也可以手动在浏览器访问 `http://localhost:8080/` 或 `http://localhost:8080/CarGenieServer-1.0-SNAPSHOT/`(请根据target文件里的war包名自行调整)
 5.  如果连接成功，会出现一条`CarGenie Server is running successfully`的信息。
+
+### 步骤 6：如何设置tomcat manager来方便部署target里的war包
+1. 打开`conf/tomcat-users.xml`文件，此文件位于安装的tomcat的位置。添加如下内容：
+用terminal打开tomcat的conf文件夹，然后在最后输入`nano tomcat-users.xml`，然后在最后添加如下内容：
+```xml
+<role rolename="admin-gui"/>
+<role rolename="manager-gui"/>
+<user username="admin" password="password" fullName="Administrator"
+roles="admin-gui,manager-gui"/>
+```
+如图所示：Click CTRL + X to exit and save it.
+![tomcat-user.png](../resources/tomcat-user.png)
+
+2. 打开`webapps/manager/META-INF/context.xml`文件，此文件位于安装的tomcat的位置。添加如下内容：
+用terminal进入META-INF文件，然后在最后输入`nano tomcat-users.xml`，然后修改如下内容来允许所有ip访问：
+![ipmodified.png](../resources/ipmodified.png)
+
+3. 访问`http://localhost:8080/manager/html`，输入用户名和密码，然后点击`Choose File`选择war包，然后点击`Deploy`即可部署war包。
+![tomcatPage.png](../resources/tomcatPage.png)
+
+**每次修改代码后，只需要重新build + build artifact 一下，然后重新部署war包即可。**
