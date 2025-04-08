@@ -28,6 +28,12 @@ const HomePage = () => {
                 >
                     Manage Vehicles
                 </button>
+                <button
+                    className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-700 transition"
+                    onClick={() => navigate("/recommendations")}
+                >
+                    Recommendations
+                </button>
             </div>
         </div>
     );
