@@ -1,6 +1,8 @@
 package car.genie.server.dal;
 
 import car.genie.server.model.Models;
+import car.genie.server.model.VehicleClassification;
+import car.genie.server.model.VehicleConditions;
 import car.genie.server.model.Vehicles;
 
 import java.sql.Connection;
@@ -230,4 +232,120 @@ public class VehiclesDao {
                 .build();
     }
 
+    public List<Vehicles> getRecommendedVehicles(String vin) throws SQLException {
+        List<Vehicles> finalRecommendations = new ArrayList<>();
+
+        Vehicles baseVehicle = getVehicleByVin(vin);
+        if (baseVehicle == null) {
+            throw new SQLException("No vehicle found for given VIN: " + vin);
+        }
+
+        VehicleConditionsDao conditionsDao = VehicleConditionsDao.getInstance();
+        VehicleConditions baseCondition = conditionsDao.getVehicleConditionsByVehicleId(baseVehicle.getVehicleId());
+        if (baseCondition == null) {
+            throw new SQLException("No vehicle conditions found for VIN: " + vin);
+        }
+        VehicleClassificationDao classificationDao = VehicleClassificationDao.getInstance();
+        VehicleClassification baseClassification = classificationDao.getVehicleClassificationByVehicleId(baseVehicle.getVehicleId());
+        if (baseClassification == null) {
+            throw new SQLException("No vehicle classification found for VIN: " + vin);
+        }
+
+        int basePrice = baseVehicle.getPrice();
+        int baseYear = baseClassification.getYear();
+        int baseOdometer = baseCondition.getOdometer();
+        int baseModelId = baseVehicle.getModelId();
+        Models baseModel = null;
+        try {
+            baseModel = ModelsDao.getInstance().getModelByModelId(baseModelId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        int baseManufacturerId = (baseModel != null) ? baseModel.getManufacturerId() : -1;
+
+        String sql = "SELECT v.VehicleId, v.Vin, v.Price, v.PostingDate, v.Description, v.ModelId, " +
+                "vc.Odometer, vc.VehicleCondition, vc.TitleStatus, " +
+                "vc2.Year, m.ManufacturerId " +
+                "FROM Vehicles v " +
+                "JOIN VehicleConditions vc ON v.VehicleId = vc.VehicleId " +
+                "JOIN VehicleClassification vc2 ON v.VehicleId = vc2.VehicleId " +
+                "JOIN Models m ON v.ModelId = m.ModelId " +
+                "WHERE v.Price BETWEEN ? AND ? " +
+                "AND vc.VehicleCondition = ? " +
+                "AND vc.TitleStatus = ? " +
+                "AND vc2.Year BETWEEN ? AND ? " +
+                "AND v.Vin <> ? " +
+                "LIMIT 20";
+
+        int lowerPrice = basePrice - 1000;
+        int upperPrice = basePrice + 1000;
+        int lowerYear = baseYear - 2;
+        int upperYear = baseYear + 2;
+
+        class CandidateVehicle {
+            Vehicles vehicle;
+            int odometer;
+            int year;
+            int manufacturerId;
+            double score;
+        }
+        List<CandidateVehicle> candidates = new ArrayList<>();
+
+        try (Connection connection = connectionManager.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setInt(1, lowerPrice);
+            stmt.setInt(2, upperPrice);
+            stmt.setString(3, baseCondition.getVehicleCondition());
+            stmt.setString(4, baseCondition.getTitleStatus());
+            stmt.setInt(5, lowerYear);
+            stmt.setInt(6, upperYear);
+            stmt.setString(7, vin);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    CandidateVehicle cand = new CandidateVehicle();
+
+                    cand.vehicle = Vehicles.builder()
+                            .vehicleId(rs.getLong("VehicleId"))
+                            .vin(rs.getString("Vin"))
+                            .price(rs.getInt("Price"))
+                            .postingDate(rs.getDate("PostingDate").toLocalDate())
+                            .description(rs.getString("Description"))
+                            .modelId(rs.getInt("ModelId"))
+                            .build();
+                    cand.odometer = rs.getInt("Odometer");
+                    cand.year = rs.getInt("Year");
+                    cand.manufacturerId = rs.getInt("ManufacturerId");
+
+
+                    double priceScore = Math.max(0, 1000 - Math.abs(cand.vehicle.getPrice() - basePrice));
+                    double yearDiff = Math.abs(cand.year - baseYear);
+                    double yearScore = Math.max(0, (2 - yearDiff) * 250);
+                    double modelBonus = (cand.vehicle.getModelId() == baseModelId) ? 1000 : 0;
+                    if (modelBonus == 0 && cand.manufacturerId == baseManufacturerId) {
+                        modelBonus = 500;
+                    }
+                    double odometerScore = Math.max(0, 500 - Math.abs(cand.odometer - baseOdometer));
+
+                    LocalDate basePosting = baseVehicle.getPostingDate();
+                    LocalDate candPosting = cand.vehicle.getPostingDate();
+                    long dayDiff = Math.abs(java.time.temporal.ChronoUnit.DAYS.between(basePosting, candPosting));
+                    double postingDateScore = Math.max(0, 30 - dayDiff);
+
+                    cand.score = priceScore + yearScore + modelBonus + odometerScore + postingDateScore;
+                    candidates.add(cand);
+                }
+            }
+        }
+
+        candidates.sort((c1, c2) -> Double.compare(c2.score, c1.score));
+
+        int resultCount = Math.min(5, candidates.size());
+        for (int i = 0; i < resultCount; i++) {
+            finalRecommendations.add(candidates.get(i).vehicle);
+        }
+
+        return finalRecommendations;
+    }
 }
