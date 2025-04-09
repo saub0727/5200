@@ -24,24 +24,24 @@
 3.  切换到 `Deployment` 选项卡
 4.  点击 `+`，选择 `Artifact`
 5.  选择 `CarGenieServer:war exploded`
-6.  将 `Application Context` 设为 `/`（即 `http://localhost:8080/`）
+6.  ~~将 `Application Context` 设为 `/`（即 `http://localhost:8080/`）~~
+7. 将 `Application Context` 设为 `/CarGenieServer-1.0-SNAPSHOT`（即访问地址为 `http://localhost:8080/CarGenieServer-1.0-SNAPSHOT/`），以便与前端配置保持一致
 
-### 步骤 3：添加 Web 部署（Artifact）（应该可以跳过）
-
-**应该可以直接跳过**，步骤2窗口下方会出现 `Artifact不存在` 的警告，点一下`Fix`就会自动创建。目前假设前端存放在另一个 repo，这里仅配置后端部署，确保 `war exploded` 形式的 `Artifact` 存在。
-
-1.  打开 `File > Project Structure (Ctrl + Alt + Shift + S)`
-2.  导航到 `Artifacts` 选项卡
-3.  点击 `+` 按钮，选择 `Web Application: Exploded`
-4.  选择 `CarGenieServer` 作为 `Module`
-5.  点击 `Apply` 和 `OK`
-
-### 步骤 4：配置 Tomcat 端口（建议跳过，用默认值就行）
+### 步骤 3：配置 Tomcat 端口（建议跳过，用默认值就行）
 
 1.  在 `Server` 选项卡中：
     -   默认端口为 `8080`，如有冲突可更改（如 `8081`）
     -   `On 'Update' action` 设为 `Restart server`
     -   `On frame deactivation` 设为 `Do nothing`
+
+### 步骤 4：配置.env（数据库的用户名和密码）
+
+1. 在 `src/main/resources/` 目录下创建 .env 文件
+2. 添加以下内容（将密码改成你自己的；若密码为空，直接写 `DB_PASSWORD=`）
+    ```
+    DB_USER=root
+    DB_PASSWORD=secret20!
+    ```
 
 ### 步骤 5：启动 Tomcat
 
@@ -51,7 +51,7 @@
 4.  浏览器会自动打开 / 也可以手动在浏览器访问 `http://localhost:8080/` 或 `http://localhost:8080/CarGenieServer-1.0-SNAPSHOT/`(请根据target文件里的war包名自行调整)
 5.  如果连接成功，会出现一条`CarGenie Server is running successfully`的信息。
 
-### 步骤 6：如何设置tomcat manager来方便部署target里的war包
+### 步骤 6：如何设置tomcat manager来方便部署target里的war包（Optional）
 1. 打开`conf/tomcat-users.xml`文件，此文件位于安装的tomcat的位置。添加如下内容：
 用terminal打开tomcat的conf文件夹，然后在最后输入`nano tomcat-users.xml`，然后在最后添加如下内容：
 ```xml

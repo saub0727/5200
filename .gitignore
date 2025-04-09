@@ -77,3 +77,9 @@ dist-ssr/
 *.tmp
 *.bak
 *.swp
+
+# Ignore local env files
+CarGenieServer/src/main/resources/.env
+
+# Ignore version control files
+car_genie_client/package-lock.json
