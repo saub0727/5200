@@ -4,15 +4,17 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import io.github.cdimascio.dotenv.Dotenv;
 
 /**
  * Use ConnectionManager to connect to your database instance.
  */
 public class ConnectionManager {
+    Dotenv dotenv = Dotenv.configure().load();
     // User to connect to your database instance.
-    private final String user = "root";
+    private final String user = dotenv.get("DB_USER");
     // Password for the user.
-    private final String password = "secret20!";
+    private final String password = dotenv.get("DB_PASSWORD");
     // URI to your database server.
     private final String hostName = "localhost";
     // Port to your database server. By default, this is 3307.
