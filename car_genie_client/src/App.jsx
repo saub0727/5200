@@ -1,11 +1,11 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import HomePage from "./pages/HomePage.jsx"; // Import Home Page
-import FindVehicle from "./pages/FindVehicle.jsx"; // Import Find Vehicle Page
+import HomePage from "./pages/HomePage.jsx";
+import FindVehicle from "./pages/FindVehicle.jsx";
 import FilterVehicles from "./pages/FilterVehicles.jsx";
 import VehicleManager from "./pages/VehicleManager.jsx";
+import Recommendations from "./pages/Recommendations.jsx";
 import "./App.css";
-
 
 const App = () => {
     return (
@@ -15,6 +15,7 @@ const App = () => {
                 <Route path="/findvehicles" element={<FindVehicle />} />
                 <Route path="/filtervehicles" element={<FilterVehicles />} />
                 <Route path="/managevehicles" element={<VehicleManager />} />
+                <Route path="/recommendations" element={<Recommendations />} />
             </Routes>
         </Router>
     );
