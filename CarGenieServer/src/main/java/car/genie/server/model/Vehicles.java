@@ -20,4 +20,15 @@ public class Vehicles {
     private LocalDate postingDate;
     private String description;
     private Integer modelId;
+    
+    // New fields to add
+    private Integer year;
+    private String make;
+    private String model;
+    private String condition;
+    private Integer mileage;
+    private String fuel;
+    private String transmission;
+    private String drive;
+    private String titleStatus;
 }

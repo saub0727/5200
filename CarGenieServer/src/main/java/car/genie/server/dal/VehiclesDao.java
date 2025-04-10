@@ -74,8 +74,6 @@ public class VehiclesDao {
         }
     }
 
-
-
     /**
      * Get a vehicle by its ID, including its model information.
      */
@@ -208,14 +206,72 @@ public class VehiclesDao {
      * Helper method to parse a vehicle from a ResultSet with JOIN results
      */
     private Vehicles parseVehicle(ResultSet results) throws SQLException {
-        return Vehicles.builder()
+        Vehicles.VehiclesBuilder builder = Vehicles.builder()
                 .vehicleId(results.getLong("VehicleId"))
                 .vin(results.getString("Vin"))
                 .price(results.getInt("Price"))
                 .postingDate(results.getDate("PostingDate").toLocalDate())
                 .description(results.getString("Description"))
-                .modelId(results.getInt("ModelId"))
-                .build();
+                .modelId(results.getInt("ModelId"));
+        
+        // Try to get additional fields if they exist in the result set
+        try {
+            builder.year(results.getInt("Year"));
+            if (results.wasNull()) builder.year(null);
+        } catch (SQLException e) {
+            // Column doesn't exist in this result set
+        }
+        
+        try {
+            builder.condition(results.getString("VehicleCondition"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.titleStatus(results.getString("TitleStatus"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.mileage(results.getInt("Odometer"));
+            if (results.wasNull()) builder.mileage(null);
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.fuel(results.getString("Fuel"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.transmission(results.getString("Transmission"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.drive(results.getString("Drive"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.make(results.getString("ManufacturerName"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        try {
+            builder.model(results.getString("ModelName"));
+        } catch (SQLException e) {
+            // Column doesn't exist
+        }
+        
+        return builder.build();
     }
 
     /**
@@ -263,13 +319,18 @@ public class VehiclesDao {
         }
         int baseManufacturerId = (baseModel != null) ? baseModel.getManufacturerId() : -1;
 
+        // Updated SQL query to include more fields
         String sql = "SELECT v.VehicleId, v.Vin, v.Price, v.PostingDate, v.Description, v.ModelId, " +
                 "vc.Odometer, vc.VehicleCondition, vc.TitleStatus, " +
-                "vc2.Year, m.ManufacturerId " +
+                "vc2.Year, m.ManufacturerId, m.ModelName, " +
+                "man.ManufacturerName, " +
+                "vs.Fuel, vs.Transmission, vs.Drive " +
                 "FROM Vehicles v " +
                 "JOIN VehicleConditions vc ON v.VehicleId = vc.VehicleId " +
                 "JOIN VehicleClassification vc2 ON v.VehicleId = vc2.VehicleId " +
                 "JOIN Models m ON v.ModelId = m.ModelId " +
+                "JOIN Manufacturers man ON m.ManufacturerId = man.ManufacturerId " +
+                "LEFT JOIN VehicleSpecs vs ON v.VehicleId = vs.VehicleId " +
                 "WHERE v.Price BETWEEN ? AND ? " +
                 "AND vc.VehicleCondition = ? " +
                 "AND vc.TitleStatus = ? " +
@@ -306,18 +367,34 @@ public class VehiclesDao {
                 while (rs.next()) {
                     CandidateVehicle cand = new CandidateVehicle();
 
-                    cand.vehicle = Vehicles.builder()
+                    // Update the vehicle builder to include all fields
+                    Vehicles.VehiclesBuilder builder = Vehicles.builder()
                             .vehicleId(rs.getLong("VehicleId"))
                             .vin(rs.getString("Vin"))
                             .price(rs.getInt("Price"))
                             .postingDate(rs.getDate("PostingDate").toLocalDate())
                             .description(rs.getString("Description"))
                             .modelId(rs.getInt("ModelId"))
-                            .build();
+                            .year(rs.getInt("Year"))
+                            .condition(rs.getString("VehicleCondition"))
+                            .titleStatus(rs.getString("TitleStatus"))
+                            .mileage(rs.getInt("Odometer"))
+                            .model(rs.getString("ModelName"))
+                            .make(rs.getString("ManufacturerName"));
+                    
+                    // Try to get the VehicleSpecs fields which might be null
+                    try {
+                        builder.fuel(rs.getString("Fuel"));
+                        builder.transmission(rs.getString("Transmission"));
+                        builder.drive(rs.getString("Drive"));
+                    } catch (SQLException e) {
+                        // These fields might be null if the LEFT JOIN didn't find a match
+                    }
+                    
+                    cand.vehicle = builder.build();
                     cand.odometer = rs.getInt("Odometer");
                     cand.year = rs.getInt("Year");
                     cand.manufacturerId = rs.getInt("ManufacturerId");
-
 
                     double priceScore = Math.max(0, 1000 - Math.abs(cand.vehicle.getPrice() - basePrice));
                     double yearDiff = Math.abs(cand.year - baseYear);
