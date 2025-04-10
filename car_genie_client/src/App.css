@@ -1,7 +1,6 @@
 #root {
-  max-width: 1280px;
+  max-width: 100%; /* Changed from 1280px to full width */
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
@@ -11,9 +10,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -39,4 +40,100 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Force button styling to be consistent in dark mode */
+button {
+  background-color: #1a1a1a;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* Navbar styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #1a1a1a;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navbar-brand a {
+  color: #646cff;
+  text-decoration: none;
+}
+
+.navbar-nav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.nav-item {
+  margin-left: 1.5rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #646cff;
+}
+
+.nav-link.active {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+/* Content container to add padding below navbar */
+.content {
+  padding: 1rem 2rem;
+  margin-top: 1rem;
+}
+
+/* App container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  .navbar-brand {
+    margin-bottom: 1rem;
+  }
+  
+  .navbar-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .nav-item {
+    margin: 0.5rem;
+  }
+  
+  .content {
+    padding: 1rem;
+  }
 }

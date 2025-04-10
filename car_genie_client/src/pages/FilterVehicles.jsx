@@ -15,7 +15,8 @@ const FilterVehicles = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [vehiclesPerPage] = useState(20);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
-    
+    const [hasSearched, setHasSearched] = useState(false); // Add this new state
+
     const enums = {
         condition: ["EXCELLENT", "FAIR", "GOOD", "LIKE_NEW", "NEW", "SALVAGE"],
         titleStatus: ["CLEAN", "LIEN", "MISSING", "PARTS_ONLY", "REBUILT", "SALVAGE"],
@@ -23,16 +24,17 @@ const FilterVehicles = () => {
         transmission: ["AUTOMATIC", "MANUAL", "OTHER"],
         drive: ["FWD", "RWD", "4WD"],
     };
-    
+
     const handleChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
     };
-    
+
     const fetchVehicles = async () => {
         setLoading(true);
+        setHasSearched(true); // Set this when a search is initiated
         const queryParams = new URLSearchParams(filters).toString();
         console.log("Sending request to:", `http://localhost:8080/CarGenieServer-1.0-SNAPSHOT/filtervehicles?${queryParams}`);
-        
+
         try {
             const response = await fetch(`http://localhost:8080/CarGenieServer-1.0-SNAPSHOT/filtervehicles?${queryParams}`);
             const data = await response.json();
@@ -45,7 +47,7 @@ const FilterVehicles = () => {
             setLoading(false);
         }
     };
-    
+
     // Sorting logic
     const requestSort = (key) => {
         let direction = 'ascending';
@@ -54,18 +56,18 @@ const FilterVehicles = () => {
         }
         setSortConfig({ key, direction });
     };
-    
+
     const sortedVehicles = [...vehicles].sort((a, b) => {
         if (sortConfig.key === null) return 0;
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
-        
+
         // Handle numeric values for sorting
         if (sortConfig.key === 'price' || sortConfig.key === 'year') {
             aValue = Number(aValue);
             bValue = Number(bValue);
         }
-        
+
         if (aValue < bValue) {
             return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -74,18 +76,18 @@ const FilterVehicles = () => {
         }
         return 0;
     });
-    
+
     // Get current vehicles for pagination
     const indexOfLastVehicle = currentPage * vehiclesPerPage;
     const indexOfFirstVehicle = indexOfLastVehicle - vehiclesPerPage;
     const currentVehicles = sortedVehicles.slice(indexOfFirstVehicle, indexOfLastVehicle);
-    
+
     // Change page
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
-    
+
     // State for modal
     const [modalInfo, setModalInfo] = useState({ isOpen: false, vehicle: null });
-    
+
     // Column definitions with headers and accessor functions
     const columns = [
         { header: "ID", accessor: "vehicleId" },
@@ -102,13 +104,13 @@ const FilterVehicles = () => {
         { header: "Title Status", accessor: "titleStatus" },
         { header: "Details", accessor: "details", isAction: true }
     ];
-    
+
     // Function to get the sort indicator
     const getSortIndicator = (key) => {
         if (sortConfig.key !== key) return '⇵';
         return sortConfig.direction === 'ascending' ? '↑' : '↓';
     };
-    
+
     // Clear all filters
     const clearFilters = () => {
         setFilters({
@@ -121,7 +123,7 @@ const FilterVehicles = () => {
             maxPrice: "",
         });
     };
-    
+
     // Function to open a vehicle detail in a popup window
     const openVehicleInPopup = (vehicle) => {
         const content = `
@@ -267,7 +269,7 @@ const FilterVehicles = () => {
             </body>
             </html>
         `;
-        
+
         // Open a new window and write the content
         const newWindow = window.open('about:blank', '_blank', 'width=800,height=600,resizable=yes,scrollbars=yes');
         if (newWindow) {
@@ -278,11 +280,11 @@ const FilterVehicles = () => {
             alert("Popup blocked. Please allow popups for this site to view vehicle details.");
         }
     };
-    
+
     return (
         <div className="p-4 max-w-6xl mx-auto bg-black text-white min-h-screen">
             <h1 className="text-2xl font-bold mb-6">Filter Vehicles</h1>
-            
+
             {/* Filter section */}
             <div className="bg-gray-900 p-4 rounded-lg mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -343,7 +345,7 @@ const FilterVehicles = () => {
                     </button>
                 </div>
             </div>
-            
+
             {/* Results section */}
             {loading ? (
                 <div className="text-center py-12">
@@ -353,91 +355,107 @@ const FilterVehicles = () => {
             ) : vehicles.length > 0 ? (
                 <div className="mt-6">
                     <h2 className="text-lg font-semibold mb-4">Results: {vehicles.length} vehicles found</h2>
-                    
-                    {/* Responsive Table */}
-                    <div className="overflow-x-auto">
-                    <table className="min-w-full bg-gray-900 rounded-lg overflow-hidden" style={{ borderCollapse: 'collapse' }}>
-                        <thead className="bg-gray-800">
-                        <tr>
-                            {columns.map((column) => (
-                            <th
-                                key={column.accessor}
-                                style={{ 
-                                padding: '12px 16px', 
-                                textAlign: 'left',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                color: '#d1d5db',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em',
-                                cursor: 'pointer',
-                                border: '1px solid white'
-                                }}
-                                onClick={() => requestSort(column.accessor)}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                {column.header}
-                                <span style={{ color: '#6b7280' }}>{getSortIndicator(column.accessor)}</span>
-                                </div>
-                            </th>
-                            ))}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {currentVehicles.map((vehicle) => (
-                            <tr key={vehicle.vehicleId} style={{ backgroundColor: '#1f2937', ':hover': { backgroundColor: '#374151' } }}>
-                            {columns.map((column) => {
-                                if (column.isAction) {
-                                return (
-                                    <td 
-                                    key={`${vehicle.vehicleId}-${column.accessor}`} 
-                                    style={{ 
-                                        padding: '12px 16px', 
-                                        whiteSpace: 'nowrap',
-                                        border: '1px solid white'
-                                    }}
-                                    >
-                                    <button
-                                        onClick={() => openVehicleInPopup(vehicle)}
-                                        style={{
-                                        padding: '4px 12px',
-                                        backgroundColor: '#2563eb',
-                                        color: 'white',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        transition: 'background-color 0.2s'
-                                        }}
-                                    >
-                                        View
-                                    </button>
-                                    </td>
-                                );
-                                }
-                                const value = vehicle[column.accessor];
-                                return (
-                                <td 
-                                    key={`${vehicle.vehicleId}-${column.accessor}`} 
-                                    style={{ 
-                                    padding: '12px 16px', 
-                                    whiteSpace: 'nowrap',
-                                    border: '1px solid white'
-                                    }}
-                                >
-                                    {column.format && value !== undefined
-                                    ? column.format(value)
-                                    : value || 'N/A'}
-                                </td>
-                                );
-                            })}
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+
+                    {/* Responsive Table with Column Width Management */}
+                    <div className="mb-2 text-sm italic text-gray-400 text-center">Scroll horizontally to view all data →</div>
+                    <div className="overflow-x-auto mx-auto p-4 bg-gray-900 rounded-lg border border-gray-700" style={{
+                        maxWidth: "95%",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch",
+                        paddingBottom: "16px", // More padding at bottom for scrollbar
+                        margin: "0 auto 20px auto", // Added vertical margin
+                    }}>
+                        <table className="mx-auto bg-gray-900 rounded-lg overflow-hidden" style={{
+                            borderCollapse: 'collapse',
+                            margin: "0 auto" // Center the table
+                        }}>
+                            <thead className="bg-gray-800">
+                                <tr>
+                                    {columns.map((column) => (
+                                        <th
+                                            key={column.accessor}
+                                            style={{
+                                                padding: '12px 16px',
+                                                textAlign: 'left',
+                                                fontSize: '12px',
+                                                fontWeight: '500',
+                                                color: '#d1d5db',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.05em',
+                                                cursor: 'pointer',
+                                                border: '1px solid white',
+                                                whiteSpace: 'nowrap' // Prevent wrapping in headers
+                                            }}
+                                            onClick={() => requestSort(column.accessor)}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                {column.header}
+                                                <span style={{ color: '#6b7280' }}>{getSortIndicator(column.accessor)}</span>
+                                            </div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentVehicles.map((vehicle) => (
+                                    <tr key={vehicle.vehicleId} style={{ backgroundColor: '#1f2937' }}>
+                                        {columns.map((column) => {
+                                            if (column.isAction) {
+                                                return (
+                                                    <td
+                                                        key={`${vehicle.vehicleId}-${column.accessor}`}
+                                                        style={{
+                                                            padding: '12px 16px',
+                                                            border: '1px solid white',
+                                                            whiteSpace: 'nowrap'
+                                                        }}
+                                                    >
+                                                        <button
+                                                            onClick={() => openVehicleInPopup(vehicle)}
+                                                            style={{
+                                                                padding: '4px 12px',
+                                                                backgroundColor: '#2563eb',
+                                                                color: 'white',
+                                                                borderRadius: '4px',
+                                                                cursor: 'pointer',
+                                                                transition: 'background-color 0.2s'
+                                                            }}
+                                                        >
+                                                            View
+                                                        </button>
+                                                    </td>
+                                                );
+                                            }
+                                            const value = vehicle[column.accessor];
+                                            const displayValue = column.format && value !== undefined
+                                                ? column.format(value)
+                                                : value || 'N/A';
+
+                                            return (
+                                                <td
+                                                    key={`${vehicle.vehicleId}-${column.accessor}`}
+                                                    style={{
+                                                        padding: '12px 16px',
+                                                        border: '1px solid white',
+                                                        whiteSpace: 'nowrap'
+                                                    }}
+                                                >
+                                                    {displayValue}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                    
+
                     {/* Pagination */}
                     {vehicles.length > vehiclesPerPage && (
-                        <div className="mt-6 flex justify-center">
+                        <div className="mt-6 flex flex-col items-center">
+                            <div className="mb-2 text-sm">
+                                Page <span className="font-bold">{currentPage}</span> of {Math.ceil(vehicles.length / vehiclesPerPage)}
+                            </div>
                             <nav className="flex items-center">
                                 {/* First page button */}
                                 <button
@@ -447,7 +465,7 @@ const FilterVehicles = () => {
                                 >
                                     «
                                 </button>
-                                
+
                                 {/* Previous page button */}
                                 <button
                                     onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)}
@@ -456,7 +474,7 @@ const FilterVehicles = () => {
                                 >
                                     ‹
                                 </button>
-                                
+
                                 {/* Page numbers */}
                                 {Array.from({ length: Math.ceil(vehicles.length / vehiclesPerPage) }).map((_, index) => {
                                     // Only show a window of 5 pages
@@ -466,31 +484,36 @@ const FilterVehicles = () => {
                                             return null;
                                         }
                                     }
-                                    
+
                                     // Show ellipsis for page gaps
                                     if (index === 1 && currentPage > 4) {
                                         return <span key="ellipsis-start" className="px-3 py-1 border border-gray-700 bg-gray-800 mx-1">...</span>;
                                     }
-                                    
+
                                     if (index === Math.ceil(vehicles.length / vehiclesPerPage) - 2 && currentPage < Math.ceil(vehicles.length / vehiclesPerPage) - 3) {
                                         return <span key="ellipsis-end" className="px-3 py-1 border border-gray-700 bg-gray-800 mx-1">...</span>;
                                     }
-                                    
+
+                                    const isCurrentPage = currentPage === index + 1;
                                     return (
                                         <button
                                             key={index}
                                             onClick={() => paginate(index + 1)}
-                                            className={`px-3 py-1 border border-gray-700 mx-1 ${
-                                                currentPage === index + 1 
-                                                ? 'bg-white text-black font-bold' 
-                                                : 'bg-gray-800 text-white'
-                                            }`}
+                                            style={{
+                                                padding: '0.25rem 0.75rem',
+                                                margin: '0 0.25rem',
+                                                border: '1px solid #4b5563',
+                                                backgroundColor: isCurrentPage ? '#ffffff' : '#1f2937',
+                                                color: isCurrentPage ? '#000000' : '#ffffff',
+                                                fontWeight: isCurrentPage ? 'bold' : 'normal',
+                                                borderRadius: '0.25rem',
+                                            }}
                                         >
                                             {index + 1}
                                         </button>
                                     );
                                 })}
-                                
+
                                 {/* Next page button */}
                                 <button
                                     onClick={() => paginate(currentPage < Math.ceil(vehicles.length / vehiclesPerPage) ? currentPage + 1 : currentPage)}
@@ -499,7 +522,7 @@ const FilterVehicles = () => {
                                 >
                                     ›
                                 </button>
-                                
+
                                 {/* Last page button */}
                                 <button
                                     onClick={() => paginate(Math.ceil(vehicles.length / vehiclesPerPage))}
@@ -512,11 +535,11 @@ const FilterVehicles = () => {
                         </div>
                     )}
                 </div>
-            ) : (
+            ) : hasSearched ? ( // Only show "no results" message after a search
                 <div className="text-center py-12 bg-gray-900 rounded-lg">
                     <p className="text-gray-300">No vehicles found. Adjust your filters and try again.</p>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 };
